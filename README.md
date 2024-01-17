@@ -16,7 +16,7 @@ This is a simple tank game developed using the Pygame library, where the player 
 
         bash
 
-        cd tank-game
+        cd WarGame
 ## Install the required dependencies:
         pip install -r requirements.txt
   
