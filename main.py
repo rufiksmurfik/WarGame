@@ -27,8 +27,27 @@ class Bullet(pygame.sprite.Sprite):
         self.r.x += self.speed_x * 11
         self.r.y -= self.speed_y * 11
 
+        self.F = False
+        self.frames = []
+        self.cut_sheet(pygame.image.load('images/Textures/Level/Animation/effect_sprite.png'), 3, 1)
+        self.cur_frame = 0
+        self.effect = self.frames[self.cur_frame]
+        self.rect_effect = self.effect.get_rect(center=(x, y))
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect_effect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect_effect.w * i, self.rect_effect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect_effect.size)))
+
     def rotate(self):
         self.surf, self.r = self.rot_center(self.bullet, self.rect, self.angle)
+
+    def rotate1(self):
+        self.surf1, self.r1 = self.rot_center(self.effect, self.rect_effect, self.angle)
 
     def rot_center(self, image, rect, angle):
         rot_image = pygame.transform.rotate(image, angle)
@@ -36,87 +55,22 @@ class Bullet(pygame.sprite.Sprite):
         return rot_image, rot_rect
 
     def update(self, screen):
+        try:
+            self.cur_frame = self.cur_frame + 1
+            self.effect = self.frames[self.cur_frame]
+            self.rotate1()
+            self.r1.x += self.speed_x * 4
+            self.r1.y -= self.speed_y * 4
+            screen.blit(self.surf1, self.r1)
+        except:
+            if not self.F:
+                self.F = True
+                del self.effect
+
         self.r.x += self.speed_x
         self.r.y -= self.speed_y
         screen.blit(self.surf, self.r)
 
-
-# class Player(pygame.sprite.Sprite):
-#     def __init__(self, x, y):
-#         pygame.sprite.Sprite.__init__(self)
-#         self.CoolDown = 100
-#         self.x_velocity = 0
-#         self.startX = x
-#         self.startY = y
-#         self.angle = None
-#         self.bullets = []
-#         self.last_left = False
-#         self.last_right = False
-#         self.tank = pygame.transform.scale(pygame.image.load('images/tank1.png'), (172.5, 90))
-#         self.gun = pygame.transform.scale(pygame.image.load('images/gun.png'), (225, 27))
-#         self.tank_left = pygame.transform.flip(self.tank, False, False)
-#         self.tank_right = pygame.transform.flip(self.tank, True, False)
-#         self.rect_tank = pygame.Rect(x, y, self.tank.get_size()[0], self.tank.get_size()[1])
-#         self.rect_gun = self.gun.get_rect(center=(self.rect_tank.x - 26, self.rect_tank.y + 40))
-#         self.last_shot = None
-#
-#     def update(self, left, right, is_fire):
-#         if left:
-#             self.x_velocity = -MOVE_SPEED
-#             self.tank = self.tank_left
-#
-#         if right:
-#             self.x_velocity = MOVE_SPEED
-#             self.tank = self.tank_right
-#
-#         if not (left or right):
-#             self.x_velocity = 0
-#
-#         self.rect_tank.x += self.x_velocity
-#         if self.rect_tank.x < 0:
-#             self.rect_tank.x = 0
-#         if self.rect_tank.x > 1400-172.5:
-#             self.rect_tank.x = 1400-172.5
-#
-#         self.rotate()
-#         self.rect_gun.x = self.rect_tank.x - 26
-#
-#         if is_fire:
-#             if not self.last_shot:
-#                 self.last_shot = pygame.time.get_ticks()
-#                 new_bullet = Bullet(self.rect_gun.x + self.gun.get_size()[0] // 2,
-#                                     self.rect_gun.y - self.gun.get_size()[1] // 2 + 24, self.angle)
-#                 self.bullets.append(new_bullet)
-#             else:
-#                 if pygame.time.get_ticks() - self.last_shot > self.CoolDown:
-#                     self.last_shot = pygame.time.get_ticks()
-#                     new_bullet = Bullet(self.rect_gun.x + self.gun.get_size()[0] // 2,
-#                                         self.rect_gun.y - self.gun.get_size()[1] // 2 + 24, self.angle)
-#                     self.bullets.append(new_bullet)
-#         to_del = []
-#         if self.bullets:
-#             for bullet in self.bullets:
-#                 bullet.update(screen)
-#                 if bullet.x > 1450 or bullet.x < -50 or bullet.y < -50 or bullet.y > 850:
-#                     to_del.append(bullet)
-#         for bullet in to_del:
-#             self.bullets.remove(bullet)
-#             del bullet
-#
-#     def rotate(self):
-#         mouse_x, mouse_y = pygame.mouse.get_pos()
-#         rel_x, rel_y = mouse_x - (self.rect_gun.x + self.gun.get_size()[0] // 2), mouse_y - (self.rect_gun.y + self.gun.get_size()[1] // 2)
-#         self.angle = (180 / math.pi) * -math.atan2(rel_y, rel_x)
-#         self.surf, self.r = self.rot_center(self.gun, self.rect_gun, self.angle)
-#
-#     def rot_center(self, image, rect_gun, angle):
-#         rot_image = pygame.transform.rotate(image, angle)
-#         rot_rect = rot_image.get_rect(center=rect_gun.center)
-#         return rot_image, rot_rect
-#
-#     def draw(self, screen):
-#         screen.blit(self.tank, (self.rect_tank.x, self.rect_tank.y))
-#         screen.blit(self.surf, self.r)
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, sheet_r, sheet_l, columns):
