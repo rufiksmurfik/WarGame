@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+from pygame import mixer
 
 MOVE_SPEED = 7
 Y1_PLANE = 50
@@ -141,6 +142,9 @@ class Plane(pygame.sprite.Sprite):
 
 
 pygame.init()
+mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
+mixer.music.set_volume(0.1)
+mixer.music.play()
 screen = pygame.display.set_mode((1400, 800))
 clock = pygame.time.Clock()
 background_image = pygame.image.load('images/level1/background.png')
