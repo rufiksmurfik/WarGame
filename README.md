@@ -12,15 +12,15 @@ This is a simple tank game developed using the Pygame library, where the player 
 1. Clone the repository:
    ```bash
    git clone https://github.com/rufiksmurfik/WarGame.git
-  Navigate to the project directory:
+  ## Navigate to the project directory:
 
-  bash
+        bash
 
-  cd tank-game
-Install the required dependencies:
-  pip install -r requirements.txt
+        cd tank-game
+## Install the required dependencies:
+        pip install -r requirements.txt
   
-Contributing
+## Contributing
 
 Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or create a pull request.
 License

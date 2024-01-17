@@ -4,8 +4,10 @@ import math
 
 MOVE_SPEED = 7
 
+
 def distance(sprite1, sprite2):
     return math.sqrt((sprite1.rect.x - sprite2.rect.x)**2 + (sprite1.rect.y - sprite2.rect.y)**2)
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y):
