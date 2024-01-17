@@ -34,6 +34,8 @@ class Bullet(pygame.sprite.Sprite):
         self.effect = self.frames[self.cur_frame]
         self.rect_effect = self.effect.get_rect(center=(x, y))
 
+        self.mask = pygame.mask.from_surface(self.bullet)
+
     def cut_sheet(self, sheet, columns, rows):
         self.rect_effect = pygame.Rect(0, 0, sheet.get_width() // columns,
                                 sheet.get_height() // rows)
@@ -54,7 +56,8 @@ class Bullet(pygame.sprite.Sprite):
         rot_rect = rot_image.get_rect(center=rect.center)
         return rot_image, rot_rect
 
-    def update(self, screen):
+    def update(self, screen, planes):
+
         try:
             self.cur_frame = self.cur_frame + 1
             self.effect = self.frames[self.cur_frame]
@@ -107,7 +110,11 @@ class Player(pygame.sprite.Sprite):
 
         self.shoot = mixer.Sound('images/Music/tank/shoot.mp3')
         self.reloading = mixer.Sound('images/Music/tank/reloading2.wav')
+        self.popal = mixer.Sound('images/Music/tank/est-probitie.mp3')
+        self.ubit = mixer.Sound('images/Music/tank/minecraft-death-sound.mp3')
         self.shoot.set_volume(0.2)
+        self.popal.set_volume(0.4)
+        self.ubit.set_volume(0.4)
 
     def cut_sheet_r(self, sheet, columns, rows):
         for j in range(rows):
@@ -123,7 +130,7 @@ class Player(pygame.sprite.Sprite):
                 self.frames_l.append(sheet.subsurface(pygame.Rect(
                     frame_location, self.rect_tank.size)))
 
-    def update(self, left, right, is_fire):
+    def update(self, left, right, is_fire, planes):
 
         self.cur_frame = (self.cur_frame + 1) % len(self.frames_r)
 
@@ -175,19 +182,37 @@ class Player(pygame.sprite.Sprite):
                         self.is_reloaded = False
                         self.start_reload = pygame.time.get_ticks()
         to_del = []
+        to_del_1 = []
         if self.bullets:
             for bullet in self.bullets:
-                bullet.update(screen)
+                bullet.update(screen, planes)
+                for plane in planes:
+                    if bullet.r.colliderect(plane.rect):
+
+                        plane.get_damage(1)
+                        if plane.get_HP() <= 0:
+                            self.ubit.play()
+                            to_del_1.append(plane)
+                        else:
+                            self.popal.play()
+                        to_del.append(bullet)
                 if bullet.x > 1450 or bullet.x < -50 or bullet.y < -50 or bullet.y > 850:
                     to_del.append(bullet)
         for bullet in to_del:
             self.bullets.remove(bullet)
             del bullet
+        for plane in to_del_1:
+            planes.remove(plane)
+            del plane
 
     def rotate(self):
         mouse_x, mouse_y = pygame.mouse.get_pos()
         rel_x, rel_y = mouse_x - (self.rect_gun.x + self.gun.get_size()[0] // 2), mouse_y - (self.rect_gun.y + self.gun.get_size()[1] // 2)
         self.angle = (180 / math.pi) * -math.atan2(rel_y, rel_x)
+        if -90 < self.angle < 0:
+            self.angle = 0
+        if -179 < self.angle <= -90:
+            self.angle = 180
         self.surf, self.r = self.rot_center(self.gun, self.rect_gun, self.angle)
 
     def rot_center(self, image, rect_gun, angle):
@@ -219,16 +244,21 @@ class Plane(pygame.sprite.Sprite):
         self.rect = pygame.Rect(x, y, self.image.get_size()[0], self.image.get_size()[1])
         self.x_velocity = 5
 
+        self.mask = pygame.mask.from_surface(self.image)
+
     def update(self):
         self.rect.x += self.x_velocity
 
     def get_damage(self, HP):
         self.HP -= HP
 
+    def get_HP(self):
+        return self.HP
+
 pygame.init()
 mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
 mixer.music.set_volume(0.05)
-mixer.music.play()
+mixer.music.play(-1)
 screen = pygame.display.set_mode((1400, 800))
 clock = pygame.time.Clock()
 background_image = pygame.image.load('images/level1/background.png')
@@ -267,25 +297,21 @@ while running:
     cursor_img_rect.center = pygame.mouse.get_pos()
     screen.blit(cursor_img, cursor_img_rect)
 
-    tank.update(left, right, is_fire)
+    tank.update(left, right, is_fire, planes)
     tank.draw(screen)
 
     planes.update()
     planes.draw(screen)
 
-    # Spawn a new plane randomly away from existing planes
-    if random.randint(0, 100) < 3:  # Adjust the probability as needed
+    if random.randint(0, 100) < 3:
         new_plane = Plane(-50, random.randint(Y1_PLANE, Y2_PLANE))
 
-        # Ensure new plane is not too close to existing planes
         too_close = any(distance(new_plane, existing_plane) < 200 for existing_plane in planes)
         if not too_close:
             planes.add(new_plane)
     to_del = []
     for i in planes:
         if i.rect.x > 1400:
-            to_del.append(i)
-        if i.HP <= 0:
             to_del.append(i)
     for i in range(len(to_del)):
         planes.remove(to_del[i])
