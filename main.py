@@ -75,7 +75,13 @@ class Bullet(pygame.sprite.Sprite):
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, sheet_r, sheet_l, columns):
         pygame.sprite.Sprite.__init__(self)
-        self.CoolDown = 100
+        self.start_reload = None
+        self.bullets_count = 30
+        self.CoolDown = 400
+        self.reload_time = 4000
+        self.is_reloaded = True
+        self.last_shot = None
+
         self.x_velocity = 0
         self.startX = x
         self.startY = y
@@ -95,11 +101,13 @@ class Player(pygame.sprite.Sprite):
         self.tank = self.frames_r[self.cur_frame]
         self.tank_left = self.frames_l[self.cur_frame]
         self.rect_tank = self.rect_tank.move(x, y)
-        # self.rect_tank = pygame.Rect(x, y, self.tank.get_size()[0], self.tank.get_size()[1])
 
         self.gun = pygame.transform.scale(pygame.image.load('images/gun.png'), (225, 27))
         self.rect_gun = self.gun.get_rect(center=(self.rect_tank.x - 26, self.rect_tank.y + 40))
-        self.last_shot = None
+
+        self.shoot = mixer.Sound('images/Music/tank/shoot.mp3')
+        self.reloading = mixer.Sound('images/Music/tank/reloading2.wav')
+        self.shoot.set_volume(0.2)
 
     def cut_sheet_r(self, sheet, columns, rows):
         for j in range(rows):
@@ -139,18 +147,33 @@ class Player(pygame.sprite.Sprite):
         self.rotate()
         self.rect_gun.x = self.rect_tank.x - 26
 
+        if self.start_reload:
+            if pygame.time.get_ticks() - self.start_reload > self.reload_time and not self.is_reloaded:
+                self.is_reloaded = True
+                self.bullets_count = 30
+
         if is_fire:
             if not self.last_shot:
+                self.shoot.play()
                 self.last_shot = pygame.time.get_ticks()
                 new_bullet = Bullet(self.rect_gun.x + self.gun.get_size()[0] // 2,
                                     self.rect_gun.y - self.gun.get_size()[1] // 2 + 24, self.angle)
                 self.bullets.append(new_bullet)
+                self.bullets_count -= 1
             else:
-                if pygame.time.get_ticks() - self.last_shot > self.CoolDown:
+                if pygame.time.get_ticks() - self.last_shot > self.CoolDown and self.is_reloaded:
+                    self.shoot.play()
                     self.last_shot = pygame.time.get_ticks()
                     new_bullet = Bullet(self.rect_gun.x + self.gun.get_size()[0] // 2,
                                         self.rect_gun.y - self.gun.get_size()[1] // 2 + 24, self.angle)
                     self.bullets.append(new_bullet)
+                    self.bullets_count -= 1
+                    if self.bullets_count <= 0:
+                        print('play')
+                        self.reloading.play()
+                        print('dfgjkh')
+                        self.is_reloaded = False
+                        self.start_reload = pygame.time.get_ticks()
         to_del = []
         if self.bullets:
             for bullet in self.bullets:
@@ -180,6 +203,7 @@ class Player(pygame.sprite.Sprite):
 class Plane(pygame.sprite.Sprite):
     def __init__(self, x, y):
         pygame.sprite.Sprite.__init__(self)
+        self.HP = 3
         self.planes = [
             pygame.transform.scale(pygame.image.load('images/Textures/Planes/a7.png'), (120, 53)),
             pygame.transform.scale(pygame.image.load('images/Textures/Planes/a7_2.png'), (120, 53)),
@@ -198,10 +222,12 @@ class Plane(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += self.x_velocity
 
+    def get_damage(self, HP):
+        self.HP -= HP
 
 pygame.init()
 mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
-mixer.music.set_volume(0.1)
+mixer.music.set_volume(0.05)
 mixer.music.play()
 screen = pygame.display.set_mode((1400, 800))
 clock = pygame.time.Clock()
@@ -258,6 +284,8 @@ while running:
     to_del = []
     for i in planes:
         if i.rect.x > 1400:
+            to_del.append(i)
+        if i.HP <= 0:
             to_del.append(i)
     for i in range(len(to_del)):
         planes.remove(to_del[i])
