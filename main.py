@@ -357,11 +357,14 @@ pygame.init()
 counter_bullets = 0
 counter_planes = 0
 counter_collision = 0
-is_dead = False
 screen = pygame.display.set_mode((1400, 800))
 
 
 def menu():
+    global counter_bullets, counter_planes, counter_collision
+    counter_bullets = 0
+    counter_planes = 0
+    counter_collision = 0
     sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOn/Default.png')
     sound_rect = sound_on.get_rect(center=(1400 / 2, 600))
     running = True
