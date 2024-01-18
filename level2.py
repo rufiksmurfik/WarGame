@@ -565,14 +565,28 @@ def run():
 
 
 def menu():
+    mixer.music.load("images/Music/background/alexander-nakarada-chasechosic.com.mp3")
+    mixer.music.set_volume(0.05)
+    mixer.music.play(-1)
     global counter_bullets, counter_planes, counter_collision
     counter_bullets = 0
     counter_planes = 0
     counter_collision = 0
     sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/ArrowRight/Default.png')
+    background = pygame.transform.scale(pygame.image.load('images/Background_menu.png'), (1400, 800))
+    WarGame_font = pygame.font.Font('images/font.ttf', 100).render("WarGame", True, "White")
+    level_1_font = pygame.font.Font('images/font.ttf', 30).render("First", True, "Red")
+    level_2_font = pygame.font.Font('images/font.ttf', 30).render("Second", True, "Red")
+    level_3_font = pygame.font.Font('images/font.ttf', 30).render("Third", True, "Red")
+    authors_font = pygame.font.Font('images/font.ttf', 20).render("Авторы: Егор и Иван", True, "White")
     sound_rect_1 = sound_on.get_rect(center=(1400 / 2 - 200, 600))
     sound_rect_2 = sound_on.get_rect(center=(1400 / 2, 600))
     sound_rect_3 = sound_on.get_rect(center=(1400 / 2 + 200, 600))
+    WarGame_font_rect = WarGame_font.get_rect(center=(1400 / 2, 200))
+    level_1_font_rect = level_1_font.get_rect(center=(1400 / 2 + 200, 520))
+    level_2_font_rect = level_2_font.get_rect(center=(1400 / 2, 520))
+    level_3_font_rect = level_3_font.get_rect(center=(1400 / 2 - 200, 520))
+    authors_font_rect = (0, 780)
     running = True
     clock = pygame.time.Clock()
 
@@ -591,9 +605,14 @@ def menu():
                     if sound_rect_3.collidepoint(event.pos):
                         import level3
                         level3.run()
-            screen.fill((255, 255, 0))
+            screen.blit(background, (0, 0))
             screen.blit(sound_on, sound_rect_1)
             screen.blit(sound_on, sound_rect_2)
             screen.blit(sound_on, sound_rect_3)
+            screen.blit(WarGame_font, WarGame_font_rect)
+            screen.blit(level_1_font, level_3_font_rect)
+            screen.blit(level_2_font, level_2_font_rect)
+            screen.blit(level_3_font, level_1_font_rect)
+            screen.blit(authors_font, authors_font_rect)
 
         pygame.display.update()
