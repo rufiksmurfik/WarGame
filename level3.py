@@ -88,7 +88,7 @@ class Player(pygame.sprite.Sprite):
         self.reload_time = 4000
         self.is_reloaded = True
         self.last_shot = None
-        self.HP = 3
+        self.HP = 1
 
         self.x_velocity = 0
         self.startX = x
