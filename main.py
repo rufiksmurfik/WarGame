@@ -1,3 +1,5 @@
+import sys
+
 import pygame
 import random
 import math
@@ -340,137 +342,164 @@ class Plane(pygame.sprite.Sprite):
 
 
 pygame.init()
-mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
-mixer.music.set_volume(0.05)
-mixer.music.play(-1)
-screen = pygame.display.set_mode((1400, 800))
-clock = pygame.time.Clock()
-background_image = pygame.image.load('images/level1/background.png')
-ground = pygame.transform.scale(pygame.image.load('images/level1/ground.png'), (384, 114))
-tank = Player(700, 625, pygame.transform.scale(pygame.image.load('images/tank.png'), (708, 90)),
-              pygame.transform.scale(pygame.image.load('images/tank_left.png'), (708, 90)), 4)
-cursor_img = pygame.image.load('images/crosshair.png')
-pygame.mouse.set_visible(False)
-cursor_img_rect = cursor_img.get_rect()
-planes = pygame.sprite.Group()
-left = right = False
-is_fire = False
-running = True
-is_paused = False
 counter_bullets = 0
 counter_planes = 0
 counter_collision = 0
-sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOn/Default.png')
-sound_off = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOff/Default.png')
-f = open('settings.txt')
-settings_sound = f.read().split(':')[1]
-f.close()
-if settings_sound == 'on':
-    sound_btn = sound_on
-    mixer.music.set_volume(0.1)
-else:
-    sound_btn = sound_off
-    mixer.music.set_volume(0)
-sound_rect = sound_on.get_rect(center=(1400 / 2, 600))
+screen = pygame.display.set_mode((1400, 800))
 
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
-            left = True
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-            right = True
-        if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
-            right = False
-        if event.type == pygame.KEYUP and event.key == pygame.K_LEFT:
-            left = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if not is_paused:
-                is_fire = True
-            else:
+
+def menu():
+    sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOn/Default.png')
+    sound_rect = sound_on.get_rect(center=(1400 / 2, 600))
+    running = True
+    # clock = pygame.time.Clock()
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                sys.exit(0)
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 if sound_rect.collidepoint(event.pos):
-                    f = open('settings.txt')
-                    settings_sound = f.read().split(':')[1]
-                    f.close()
-                    f = open('settings.txt', 'w+')
-                    if settings_sound == 'on':
-                        sound_btn = sound_off
-                        f.write('sound:off')
-                        mixer.music.set_volume(0)
-                    else:
-                        sound_btn = sound_on
-                        f.write('sound:on')
-                        mixer.music.set_volume(0.05)
-                    f.close()
-                    screen.blit(sound_btn, sound_rect)
-        if event.type == pygame.MOUSEBUTTONUP:
-            is_fire = False
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            is_paused = not is_paused
-            panel = pygame.Surface((1200, 600))
-            panel.get_rect()
-            panel.fill((0, 0, 0))
-            panel.set_alpha(128)  # alpha level
+                    game()
+        screen.fill((255, 255, 0))
+        screen.blit(sound_on, sound_rect)
 
-            screen.blit(panel, (100, 100))
-            screen.blit(sound_btn, sound_rect)
-    if not is_paused:
-        pygame.mouse.set_visible(False)
-        # draw all
-        screen.blit(background_image, (0, 0))
-        for _ in range(5):
-            screen.blit(ground, (0 + _ * 383, 700))
+        pygame.display.update()
 
-        cursor_img_rect.center = pygame.mouse.get_pos()
-        screen.blit(cursor_img, cursor_img_rect)
 
-        tank.update(left, right, is_fire, planes)
-        tank.draw(screen)
-
-        planes.update(tank)
-        planes.draw(screen)
-
-        if random.randint(0, 100) < 2:
-            naprav = random.randint(0, 1)
-            if naprav == 0:
-                new_plane = Plane(-100, random.randint(Y1_PLANE, Y2_PLANE), 5)
-            else:
-                new_plane = Plane(1400, random.randint(Y1_PLANE, Y2_PLANE), -5)
-
-            too_close = any(distance(new_plane, existing_plane) < 200 for existing_plane in planes)
-            if not too_close:
-                planes.add(new_plane)
-        to_del = []
-        for i in planes:
-            if i.rect.x > 1400:
-                to_del.append(i)
-        for i in range(len(to_del)):
-            planes.remove(to_del[i])
-            del to_del[i]
+def game():
+    mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
+    mixer.music.set_volume(0.05)
+    mixer.music.play(-1)
+    clock = pygame.time.Clock()
+    background_image = pygame.image.load('images/level1/background.png')
+    ground = pygame.transform.scale(pygame.image.load('images/level1/ground.png'), (384, 114))
+    tank = Player(700, 625, pygame.transform.scale(pygame.image.load('images/tank.png'), (708, 90)),
+                  pygame.transform.scale(pygame.image.load('images/tank_left.png'), (708, 90)), 4)
+    cursor_img = pygame.image.load('images/crosshair.png')
+    pygame.mouse.set_visible(False)
+    cursor_img_rect = cursor_img.get_rect()
+    planes = pygame.sprite.Group()
+    left = right = False
+    is_fire = False
+    running = True
+    is_paused = False
+    sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOn/Default.png')
+    sound_off = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOff/Default.png')
+    f = open('settings.txt')
+    settings_sound = f.read().split(':')[1]
+    f.close()
+    if settings_sound == 'on':
+        sound_btn = sound_on
+        mixer.music.set_volume(0.1)
     else:
+        sound_btn = sound_off
+        mixer.music.set_volume(0)
+    sound_rect = sound_on.get_rect(center=(1400 / 2, 600))
 
-        counter_bullets_text = pygame.font.SysFont('Consolas', 32).render('Выстрелено пуль: ' + str(counter_bullets),
-                                                                          True,
-                                                                          pygame.color.Color('White'))
-        counter_planes_text = pygame.font.SysFont('Consolas', 32).render('Сбито самолетов: ' + str(counter_planes),
-                                                                         True,
-                                                                         pygame.color.Color('White'))
-        counter_collision_text = pygame.font.SysFont('Consolas', 32).render('Попадания: ' + str(counter_collision),
-                                                                            True,
-                                                                            pygame.color.Color('White'))
-        pause_text = pygame.font.SysFont('Consolas', 70).render('Пауза', True, pygame.color.Color('White'))
-        pause_rect = pause_text.get_rect(center=(1400 / 2, 200))
-        counter_bullets_rect = counter_bullets_text.get_rect(center=(1400 / 2, 300))
-        counter_planes_rect = counter_planes_text.get_rect(center=(1400 / 2, 350))
-        counter_collision_rect = counter_collision_text.get_rect(center=(1400 / 2, 400))
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                sys.exit(0)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_LEFT:
+                left = True
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
+                right = True
+            if event.type == pygame.KEYUP and event.key == pygame.K_RIGHT:
+                right = False
+            if event.type == pygame.KEYUP and event.key == pygame.K_LEFT:
+                left = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if not is_paused:
+                    is_fire = True
+                else:
+                    if sound_rect.collidepoint(event.pos):
+                        f = open('settings.txt')
+                        settings_sound = f.read().split(':')[1]
+                        f.close()
+                        f = open('settings.txt', 'w+')
+                        if settings_sound == 'on':
+                            sound_btn = sound_off
+                            f.write('sound:off')
+                            mixer.music.set_volume(0)
+                        else:
+                            sound_btn = sound_on
+                            f.write('sound:on')
+                            mixer.music.set_volume(0.05)
+                        f.close()
+                        screen.blit(sound_btn, sound_rect)
+            if event.type == pygame.MOUSEBUTTONUP:
+                is_fire = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                is_paused = not is_paused
+                panel = pygame.Surface((1200, 600))
+                panel.get_rect()
+                panel.fill((0, 0, 0))
+                panel.set_alpha(128)  # alpha level
 
-        pygame.mouse.set_visible(True)
+                screen.blit(panel, (100, 100))
+                screen.blit(sound_btn, sound_rect)
+        if not is_paused:
+            pygame.mouse.set_visible(False)
+            # draw all
+            screen.blit(background_image, (0, 0))
+            for _ in range(5):
+                screen.blit(ground, (0 + _ * 383, 700))
 
-        screen.blit(pause_text, pause_rect)
-        screen.blit(counter_bullets_text, counter_bullets_rect)
-        screen.blit(counter_planes_text, counter_planes_rect)
-        screen.blit(counter_collision_text, counter_collision_rect)
+            cursor_img_rect.center = pygame.mouse.get_pos()
+            screen.blit(cursor_img, cursor_img_rect)
 
-    pygame.display.update()
-    clock.tick(60)
+            tank.update(left, right, is_fire, planes)
+            tank.draw(screen)
+
+            planes.update(tank)
+            planes.draw(screen)
+
+            if random.randint(0, 100) < 2:
+                naprav = random.randint(0, 1)
+                if naprav == 0:
+                    new_plane = Plane(-100, random.randint(Y1_PLANE, Y2_PLANE), 5)
+                else:
+                    new_plane = Plane(1400, random.randint(Y1_PLANE, Y2_PLANE), -5)
+
+                too_close = any(distance(new_plane, existing_plane) < 200 for existing_plane in planes)
+                if not too_close:
+                    planes.add(new_plane)
+            to_del = []
+            for i in planes:
+                if i.rect.x > 1400:
+                    to_del.append(i)
+            for i in range(len(to_del)):
+                planes.remove(to_del[i])
+                del to_del[i]
+        else:
+
+            counter_bullets_text = pygame.font.SysFont('Consolas', 32).render('Выстрелено пуль: ' + str(counter_bullets),
+                                                                              True,
+                                                                              pygame.color.Color('White'))
+            counter_planes_text = pygame.font.SysFont('Consolas', 32).render('Сбито самолетов: ' + str(counter_planes),
+                                                                             True,
+                                                                             pygame.color.Color('White'))
+            counter_collision_text = pygame.font.SysFont('Consolas', 32).render('Попадания: ' + str(counter_collision),
+                                                                                True,
+                                                                                pygame.color.Color('White'))
+            pause_text = pygame.font.SysFont('Consolas', 70).render('Пауза', True, pygame.color.Color('White'))
+            pause_rect = pause_text.get_rect(center=(1400 / 2, 200))
+            counter_bullets_rect = counter_bullets_text.get_rect(center=(1400 / 2, 300))
+            counter_planes_rect = counter_planes_text.get_rect(center=(1400 / 2, 350))
+            counter_collision_rect = counter_collision_text.get_rect(center=(1400 / 2, 400))
+
+            pygame.mouse.set_visible(True)
+
+            screen.blit(pause_text, pause_rect)
+            screen.blit(counter_bullets_text, counter_bullets_rect)
+            screen.blit(counter_planes_text, counter_planes_rect)
+            screen.blit(counter_collision_text, counter_collision_rect)
+
+        pygame.display.update()
+        clock.tick(60)
+
+
+menu()
