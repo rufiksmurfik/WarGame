@@ -357,7 +357,7 @@ screen = pygame.display.set_mode((1400, 800))
 def run():
     global is_dead, counter_planes
     mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
-    mixer.music.set_volume(0.05)
+    mixer.music.set_volume(0.2)
     mixer.music.play(-1)
     clock = pygame.time.Clock()
     background_image = pygame.image.load('images/level3/background.png')

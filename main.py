@@ -365,7 +365,7 @@ screen = pygame.display.set_mode((1400, 800))
 def menu():
     global counter_bullets, counter_planes, counter_collision
     mixer.music.load("images/Music/background/alexander-nakarada-chasechosic.com.mp3")
-    mixer.music.set_volume(0.05)
+    mixer.music.set_volume(0.2)
     mixer.music.play(-1)
     counter_bullets = 0
     counter_planes = 0
