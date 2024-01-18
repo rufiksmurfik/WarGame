@@ -590,7 +590,7 @@ def menu():
                         import level2
                         level2.run()
                     if sound_rect_3.collidepoint(event.pos):
-                        run
+                        run()
             screen.fill((255, 255, 0))
             screen.blit(sound_on, sound_rect_1)
             screen.blit(sound_on, sound_rect_2)
