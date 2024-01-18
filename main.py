@@ -135,7 +135,7 @@ class Player(pygame.sprite.Sprite):
                     frame_location, self.rect_tank.size)))
 
     def update(self, left, right, is_fire, planes):
-        global counter_collision, counter_bullets, counter_planes
+        global counter_collision, counter_bullets, counter_planes, is_dead
 
         f = open('settings.txt')
         settings_sound = f.read().split(':')[1]
@@ -200,6 +200,10 @@ class Player(pygame.sprite.Sprite):
                         self.reloading.play()
                         self.is_reloaded = False
                         self.start_reload = pygame.time.get_ticks()
+
+            if self.HP <= 0:
+                is_dead = True
+
         to_del = []
         to_del_1 = []
         if self.bullets:
@@ -254,8 +258,13 @@ class Player(pygame.sprite.Sprite):
             .render("Здоровье: " + str(self.HP) + '/5',
                     True,
                     pygame.color.Color('White'))
+        plane_text = pygame.font.SysFont('Consolas', 32) \
+            .render("Сбито самолетов: " + str(counter_planes) + '/5',
+                    True,
+                    pygame.color.Color('White'))
         screen.blit(HP_text, (0, 0))
         screen.blit(counter_bullets_text, (0, 30))
+        screen.blit(plane_text, (0, 60))
         screen.blit(self.tank, (self.rect_tank.x, self.rect_tank.y))
         screen.blit(self.surf, self.r)
 
@@ -331,8 +340,11 @@ class Plane(pygame.sprite.Sprite):
                 tank.HP -= 1
                 to_del.append(rocket)
         for i in to_del:
-            self.rockets.remove(i)
-            del i
+            try:
+                self.rockets.remove(i)
+                del i
+            except:
+                pass
 
     def get_damage(self, HP):
         self.HP -= HP
@@ -345,6 +357,7 @@ pygame.init()
 counter_bullets = 0
 counter_planes = 0
 counter_collision = 0
+is_dead = False
 screen = pygame.display.set_mode((1400, 800))
 
 
@@ -352,7 +365,7 @@ def menu():
     sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOn/Default.png')
     sound_rect = sound_on.get_rect(center=(1400 / 2, 600))
     running = True
-    # clock = pygame.time.Clock()
+    clock = pygame.time.Clock()
 
     while running:
         for event in pygame.event.get():
@@ -361,20 +374,22 @@ def menu():
                 sys.exit(0)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if sound_rect.collidepoint(event.pos):
-                    game()
+                    level1()
         screen.fill((255, 255, 0))
         screen.blit(sound_on, sound_rect)
 
         pygame.display.update()
 
 
-def game():
+def level1():
+    global is_dead, counter_planes
     mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
     mixer.music.set_volume(0.05)
     mixer.music.play(-1)
     clock = pygame.time.Clock()
     background_image = pygame.image.load('images/level1/background.png')
     ground = pygame.transform.scale(pygame.image.load('images/level1/ground.png'), (384, 114))
+    is_dead = False
     tank = Player(700, 625, pygame.transform.scale(pygame.image.load('images/tank.png'), (708, 90)),
                   pygame.transform.scale(pygame.image.load('images/tank_left.png'), (708, 90)), 4)
     cursor_img = pygame.image.load('images/crosshair.png')
@@ -383,10 +398,13 @@ def game():
     planes = pygame.sprite.Group()
     left = right = False
     is_fire = False
+    is_plane_open = False
     running = True
     is_paused = False
     sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOn/Default.png')
     sound_off = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOff/Default.png')
+    go_home = pygame.image.load('images/Textures/Buttons/Square-Medium/Home/Default.png')
+    go_home_rect = go_home.get_rect(center=(1400 / 2, 600))
     f = open('settings.txt')
     settings_sound = f.read().split(':')[1]
     f.close()
@@ -414,6 +432,9 @@ def game():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if not is_paused:
                     is_fire = True
+                if tank.HP <= 0 or counter_planes >= 5:
+                    if go_home_rect.collidepoint(event.pos):
+                        menu()
                 else:
                     if sound_rect.collidepoint(event.pos):
                         f = open('settings.txt')
@@ -441,7 +462,7 @@ def game():
 
                 screen.blit(panel, (100, 100))
                 screen.blit(sound_btn, sound_rect)
-        if not is_paused:
+        if not is_paused and tank.HP > 0 and counter_planes < 5:
             pygame.mouse.set_visible(False)
             # draw all
             screen.blit(background_image, (0, 0))
@@ -474,11 +495,79 @@ def game():
             for i in range(len(to_del)):
                 planes.remove(to_del[i])
                 del to_del[i]
-        else:
+        elif counter_planes >= 5:
+            if not is_plane_open:
+                panel = pygame.Surface((1200, 600))
+                panel.get_rect()
+                panel.fill((0, 0, 0))
+                panel.set_alpha(128)  # alpha level
 
-            counter_bullets_text = pygame.font.SysFont('Consolas', 32).render('Выстрелено пуль: ' + str(counter_bullets),
-                                                                              True,
-                                                                              pygame.color.Color('White'))
+                screen.blit(panel, (100, 100))
+                is_plane_open = True
+
+            counter_bullets_text = pygame.font.SysFont('Consolas', 32).render(
+                'Выстрелено пуль: ' + str(counter_bullets),
+                True,
+                pygame.color.Color('White'))
+            counter_planes_text = pygame.font.SysFont('Consolas', 32).render('Сбито самолетов: ' + str(counter_planes),
+                                                                             True,
+                                                                             pygame.color.Color('White'))
+            counter_collision_text = pygame.font.SysFont('Consolas', 32).render('Попадания: ' + str(counter_collision),
+                                                                                True,
+                                                                                pygame.color.Color('White'))
+
+            pause_text = pygame.font.SysFont('Consolas', 70).render('Вы выиграли', True, pygame.color.Color('White'))
+            pause_rect = pause_text.get_rect(center=(1400 / 2, 200))
+            counter_bullets_rect = counter_bullets_text.get_rect(center=(1400 / 2, 300))
+            counter_planes_rect = counter_planes_text.get_rect(center=(1400 / 2, 350))
+            counter_collision_rect = counter_collision_text.get_rect(center=(1400 / 2, 400))
+
+            pygame.mouse.set_visible(True)
+
+            screen.blit(pause_text, pause_rect)
+            screen.blit(counter_bullets_text, counter_bullets_rect)
+            screen.blit(counter_planes_text, counter_planes_rect)
+            screen.blit(counter_collision_text, counter_collision_rect)
+            screen.blit(go_home, go_home_rect)
+        elif tank.HP <= 0:
+            if not is_plane_open:
+                panel = pygame.Surface((1200, 600))
+                panel.get_rect()
+                panel.fill((0, 0, 0))
+                panel.set_alpha(128)  # alpha level
+
+                screen.blit(panel, (100, 100))
+                is_plane_open = True
+
+            counter_bullets_text = pygame.font.SysFont('Consolas', 32).render(
+                'Выстрелено пуль: ' + str(counter_bullets),
+                True,
+                pygame.color.Color('White'))
+            counter_planes_text = pygame.font.SysFont('Consolas', 32).render('Сбито самолетов: ' + str(counter_planes),
+                                                                             True,
+                                                                             pygame.color.Color('White'))
+            counter_collision_text = pygame.font.SysFont('Consolas', 32).render('Попадания: ' + str(counter_collision),
+                                                                                True,
+                                                                                pygame.color.Color('White'))
+
+            pause_text = pygame.font.SysFont('Consolas', 70).render('Вы проиграли', True, pygame.color.Color('White'))
+            pause_rect = pause_text.get_rect(center=(1400 / 2, 200))
+            counter_bullets_rect = counter_bullets_text.get_rect(center=(1400 / 2, 300))
+            counter_planes_rect = counter_planes_text.get_rect(center=(1400 / 2, 350))
+            counter_collision_rect = counter_collision_text.get_rect(center=(1400 / 2, 400))
+
+            pygame.mouse.set_visible(True)
+
+            screen.blit(pause_text, pause_rect)
+            screen.blit(counter_bullets_text, counter_bullets_rect)
+            screen.blit(counter_planes_text, counter_planes_rect)
+            screen.blit(counter_collision_text, counter_collision_rect)
+            screen.blit(go_home, go_home_rect)
+        else:
+            counter_bullets_text = pygame.font.SysFont('Consolas', 32).render(
+                'Выстрелено пуль: ' + str(counter_bullets),
+                True,
+                pygame.color.Color('White'))
             counter_planes_text = pygame.font.SysFont('Consolas', 32).render('Сбито самолетов: ' + str(counter_planes),
                                                                              True,
                                                                              pygame.color.Color('White'))
