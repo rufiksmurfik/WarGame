@@ -1,6 +1,3 @@
-import sys
-import level2
-import level3
 import pygame
 import random
 import math
@@ -91,7 +88,7 @@ class Player(pygame.sprite.Sprite):
         self.reload_time = 4000
         self.is_reloaded = True
         self.last_shot = None
-        self.HP = 5
+        self.HP = 1
 
         self.x_velocity = 0
         self.startX = x
@@ -136,7 +133,7 @@ class Player(pygame.sprite.Sprite):
                     frame_location, self.rect_tank.size)))
 
     def update(self, left, right, is_fire, planes):
-        global counter_collision, counter_bullets, counter_planes, is_dead
+        global counter_collision, counter_bullets, counter_planes
 
         f = open('settings.txt')
         settings_sound = f.read().split(':')[1]
@@ -201,10 +198,6 @@ class Player(pygame.sprite.Sprite):
                         self.reloading.play()
                         self.is_reloaded = False
                         self.start_reload = pygame.time.get_ticks()
-
-            if self.HP <= 0:
-                is_dead = True
-
         to_del = []
         to_del_1 = []
         if self.bullets:
@@ -256,11 +249,11 @@ class Player(pygame.sprite.Sprite):
                     True,
                     pygame.color.Color('White'))
         HP_text = pygame.font.SysFont('Consolas', 32) \
-            .render("Здоровье: " + str(self.HP) + '/5',
+            .render("Здоровье: " + str(self.HP) + '/1',
                     True,
                     pygame.color.Color('White'))
         plane_text = pygame.font.SysFont('Consolas', 32) \
-            .render("Сбито самолетов: " + str(counter_planes) + '/5',
+            .render("Сбито самолетов: " + str(counter_planes) + '/10',
                     True,
                     pygame.color.Color('White'))
         screen.blit(HP_text, (0, 0))
@@ -277,7 +270,7 @@ class Rocket(pygame.sprite.Sprite):
         self.surf = None
         self.r1 = None
         self.surf1 = None
-        self.speed = 10
+        self.speed = 13
         self.angle = angle
         self.speed_x = self.speed * math.cos(self.angle * 0.01745)
         self.speed_y = self.speed * math.sin(self.angle * 0.01745)
@@ -361,46 +354,14 @@ counter_collision = 0
 screen = pygame.display.set_mode((1400, 800))
 
 
-def menu():
-    global counter_bullets, counter_planes, counter_collision
-    counter_bullets = 0
-    counter_planes = 0
-    counter_collision = 0
-    sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/ArrowRight/Default.png')
-    sound_rect_1 = sound_on.get_rect(center=(1400 / 2 - 200, 600))
-    sound_rect_2 = sound_on.get_rect(center=(1400 / 2, 600))
-    sound_rect_3 = sound_on.get_rect(center=(1400 / 2 + 200, 600))
-    running = True
-    clock = pygame.time.Clock()
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-                sys.exit(0)
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_rect_1.collidepoint(event.pos):
-                    level1()
-                if sound_rect_2.collidepoint(event.pos):
-                    level2.run()
-                if sound_rect_3.collidepoint(event.pos):
-                    level3.run()
-        screen.fill((255, 255, 0))
-        screen.blit(sound_on, sound_rect_1)
-        screen.blit(sound_on, sound_rect_2)
-        screen.blit(sound_on, sound_rect_3)
-
-        pygame.display.update()
-
-
-def level1():
+def run():
     global is_dead, counter_planes
     mixer.music.load("images/Music/background/1.MainTheme-320bitchosic.com.mp3")
     mixer.music.set_volume(0.05)
     mixer.music.play(-1)
     clock = pygame.time.Clock()
-    background_image = pygame.image.load('images/level1/background.png')
-    ground = pygame.transform.scale(pygame.image.load('images/level1/ground.png'), (384, 114))
+    background_image = pygame.image.load('images/level3/background.png')
+    ground = pygame.transform.scale(pygame.image.load('images/level3/ground.png'), (384, 114))
     is_dead = False
     tank = Player(700, 625, pygame.transform.scale(pygame.image.load('images/tank.png'), (708, 90)),
                   pygame.transform.scale(pygame.image.load('images/tank_left.png'), (708, 90)), 4)
@@ -474,7 +435,7 @@ def level1():
 
                 screen.blit(panel, (100, 100))
                 screen.blit(sound_btn, sound_rect)
-        if not is_paused and tank.HP > 0 and counter_planes < 5:
+        if not is_paused and tank.HP > 0 and counter_planes < 10:
             pygame.mouse.set_visible(False)
             # draw all
             screen.blit(background_image, (0, 0))
@@ -507,7 +468,7 @@ def level1():
             for i in range(len(to_del)):
                 planes.remove(to_del[i])
                 del to_del[i]
-        elif counter_planes >= 5:
+        elif counter_planes >= 10:
             if not is_plane_open:
                 panel = pygame.Surface((1200, 600))
                 panel.get_rect()
@@ -603,4 +564,36 @@ def level1():
         clock.tick(60)
 
 
-menu()
+def menu():
+    global counter_bullets, counter_planes, counter_collision
+    counter_bullets = 0
+    counter_planes = 0
+    counter_collision = 0
+    sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/ArrowRight/Default.png')
+    sound_rect_1 = sound_on.get_rect(center=(1400 / 2 - 200, 600))
+    sound_rect_2 = sound_on.get_rect(center=(1400 / 2, 600))
+    sound_rect_3 = sound_on.get_rect(center=(1400 / 2 + 200, 600))
+    running = True
+    clock = pygame.time.Clock()
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                sys.exit(0)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if sound_rect_1.collidepoint(event.pos):
+                        import main
+                        main.level1()
+                    if sound_rect_2.collidepoint(event.pos):
+                        import level2
+                        level2.run()
+                    if sound_rect_3.collidepoint(event.pos):
+                        run()
+            screen.fill((255, 255, 0))
+            screen.blit(sound_on, sound_rect_1)
+            screen.blit(sound_on, sound_rect_2)
+            screen.blit(sound_on, sound_rect_3)
+
+        pygame.display.update()
