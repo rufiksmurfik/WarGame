@@ -1,5 +1,6 @@
 import sys
-
+import level2
+import level3
 import pygame
 import random
 import math
@@ -365,8 +366,10 @@ def menu():
     counter_bullets = 0
     counter_planes = 0
     counter_collision = 0
-    sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/SoundOn/Default.png')
-    sound_rect = sound_on.get_rect(center=(1400 / 2, 600))
+    sound_on = pygame.image.load('images/Textures/Buttons/Square-Medium/ArrowRight/Default.png')
+    sound_rect_1 = sound_on.get_rect(center=(1400 / 2 - 200, 600))
+    sound_rect_2 = sound_on.get_rect(center=(1400 / 2, 600))
+    sound_rect_3 = sound_on.get_rect(center=(1400 / 2 + 200, 600))
     running = True
     clock = pygame.time.Clock()
 
@@ -376,10 +379,16 @@ def menu():
                 running = False
                 sys.exit(0)
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if sound_rect.collidepoint(event.pos):
+                if sound_rect_1.collidepoint(event.pos):
                     level1()
+                if sound_rect_2.collidepoint(event.pos):
+                    level2.run()
+                if sound_rect_3.collidepoint(event.pos):
+                    level3.run()
         screen.fill((255, 255, 0))
-        screen.blit(sound_on, sound_rect)
+        screen.blit(sound_on, sound_rect_1)
+        screen.blit(sound_on, sound_rect_2)
+        screen.blit(sound_on, sound_rect_3)
 
         pygame.display.update()
 
